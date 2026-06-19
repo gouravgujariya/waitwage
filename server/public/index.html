@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kickback Status — Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1d27;
+      border-bottom: 1px solid #2d3148;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+    header span { font-size: 13px; color: #64748b; }
+    .badge {
+      background: #6366f1;
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    nav {
+      background: #1a1d27;
+      padding: 0 32px;
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid #2d3148;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    nav button.active { color: #6366f1; border-bottom-color: #6366f1; }
+    nav button:hover { color: #e2e8f0; }
+
+    .nav-badge {
+      background: #f59e0b;
+      color: #000;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 99px;
+      font-weight: 700;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-loading { opacity: 0.5; pointer-events: none; }
+    .loading-text { text-align: center; padding: 48px; color: #475569; font-size: 14px; }
+
+    /* ── Stats cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .stat-card .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; color: #fff; line-height: 1; }
+    .stat-card .sub { font-size: 12px; color: #64748b; margin-top: 6px; }
+    .stat-card.accent { border-color: #6366f1; }
+    .stat-card.accent .value { color: #818cf8; }
+    .stat-card.warn { border-color: #f59e0b; }
+    .stat-card.warn .value { color: #fbbf24; }
+
+    /* ── Task type breakdown ── */
+    .chart-section {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+    .chart-section .section-title { margin-bottom: 16px; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .bar-row:last-child { margin-bottom: 0; }
+    .bar-label {
+      font-size: 12px;
+      color: #94a3b8;
+      width: 160px;
+      flex-shrink: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .bar-track {
+      flex: 1;
+      height: 14px;
+      background: #0f1117;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #818cf8);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+      min-width: 2px;
+    }
+    .bar-count {
+      font-size: 12px;
+      color: #64748b;
+      width: 48px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── Activity feed ── */
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .activity-list { background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px; overflow: hidden; }
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d3148;
+      font-size: 13px;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .activity-icon.impression { background: #1e3a5f; }
+    .activity-icon.click { background: #2d1e5f; }
+    .activity-meta { flex: 1; }
+    .activity-meta strong { color: #fff; }
+    .activity-meta .user { color: #64748b; font-size: 11px; margin-top: 2px; }
+    .activity-time { color: #475569; font-size: 11px; }
+
+    /* ── Toolbar & Buttons ── */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: #6366f1; color: #fff; }
+    .btn-danger { background: #991b1b; color: #fff; }
+    .btn-success { background: #166534; color: #4ade80; }
+    .btn-warn { background: #78350f; color: #fbbf24; }
+    .btn-ghost { background: #2d3148; color: #e2e8f0; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; }
+    .table-wrap { background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px; overflow: hidden; overflow-x: auto; }
+    th {
+      text-align: left;
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d3148;
+      background: #14161f;
+      white-space: nowrap;
+    }
+    td { padding: 13px 16px; border-bottom: 1px solid #2d3148; font-size: 13px; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1e2133; }
+    .td-actions { display: flex; gap: 6px; white-space: nowrap; }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill-green { background: #14532d; color: #4ade80; }
+    .pill-gray { background: #1e293b; color: #64748b; }
+    .pill-yellow { background: #422006; color: #fbbf24; }
+    .pill-red { background: #450a0a; color: #f87171; }
+    .pill-blue { background: #1e3a5f; color: #60a5fa; }
+
+    /* ── Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 16px;
+      padding: 28px;
+      width: 520px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      color: #e2e8f0;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #6366f1; }
+    .form-group .hint { font-size: 11px; color: #475569; margin-top: 4px; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+    /* ── Sub-sections ── */
+    .sub-section { margin-bottom: 32px; }
+    .sub-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2d3148;
+    }
+
+    .empty { text-align: center; padding: 48px; color: #475569; font-size: 14px; }
+    .empty-row td { text-align: center; color: #475569; }
+
+    .refresh-btn {
+      background: none;
+      border: none;
+      color: #475569;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .refresh-btn:hover { color: #94a3b8; background: #2d3148; }
+
+    .sponsor-text { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd5e1; }
+    .sponsor-url { color: #6366f1; text-decoration: none; font-size: 12px; }
+    .sponsor-url:hover { text-decoration: underline; }
+    .ctr-good { color: #4ade80; }
+    .ctr-mid { color: #facc15; }
+    .ctr-low { color: #94a3b8; }
+
+    .mono { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; color: #94a3b8; }
+
+    .check-yes { color: #4ade80; }
+    .check-no { color: #ef4444; }
+
+    .ref-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .ref-input-wrap input {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      color: #e2e8f0;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      outline: none;
+      width: 180px;
+    }
+    .ref-input-wrap input:focus { border-color: #6366f1; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>📢</div>
+  <h1>Kickback Status</h1>
+  <span class="badge">Admin</span>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('overview', this)">Overview</button>
+  <button onclick="showPage('sponsors', this)">Manage Ads</button>
+  <button onclick="showPage('invites', this)">Invites</button>
+  <button onclick="showPage('users', this)">Users</button>
+  <button id="nav-withdrawals" onclick="showPage('withdrawals', this)">Withdrawals</button>
+  <button onclick="showPage('teams', this)">Teams</button>
+</nav>
+
+<main>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Overview
+  ════════════════════════════════════════════════════════════ -->
+  <div id="page-overview" class="page active">
+    <div class="stats-grid" id="overview-stats">
+      <div class="stat-card">
+        <div class="label">Total Impressions</div>
+        <div class="value" id="stat-impressions">—</div>
+        <div class="sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Clicks</div>
+        <div class="value" id="stat-clicks">—</div>
+        <div class="sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Unique Users</div>
+        <div class="value" id="stat-users">—</div>
+        <div class="sub">extension installs seen</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Active Ads</div>
+        <div class="value" id="stat-sponsors">—</div>
+        <div class="sub">currently serving</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Users</div>
+        <div class="value" id="stat-total-users">—</div>
+        <div class="sub">registered devs</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="label">Total Paid Out</div>
+        <div class="value" id="stat-paid-out">—</div>
+        <div class="sub">lifetime earnings paid</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="label">Pending Withdrawals</div>
+        <div class="value" id="stat-pending-wd-count">—</div>
+        <div class="sub" id="stat-pending-wd-amt">awaiting approval</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Today's Active Devs</div>
+        <div class="value" id="stat-today-devs">—</div>
+        <div class="sub">unique devs today</div>
+      </div>
+    </div>
+
+    <!-- Task Type Breakdown -->
+    <div class="chart-section" id="task-breakdown-section" style="display:none">
+      <div class="section-title">Task Type Breakdown</div>
+      <div id="task-breakdown-chart"></div>
+    </div>
+
+    <div class="section-title">
+      Recent Activity
+      <button class="refresh-btn" onclick="loadOverview()">↻ refresh</button>
+    </div>
+    <div class="activity-list" id="activity-list">
+      <div class="loading-text">Loading...</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Sponsors (Manage Ads)
+  ════════════════════════════════════════════════════════════ -->
+  <div id="page-sponsors" class="page">
+    <div class="toolbar">
+      <div class="section-title" style="margin:0">Ad Slots</div>
+      <button class="btn btn-primary" onclick="openSponsorModal()">+ Add Ad</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Advertiser</th>
+            <th>Ad Text</th>
+            <th>URL</th>
+            <th>Bid (paise)</th>
+            <th>Daily Budget</th>
+            <th>Impressions</th>
+            <th>Clicks</th>
+            <th>CTR</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="sponsors-tbody">
+          <tr><td colspan="10" class="loading-text">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Invites
+  ════════════════════════════════════════════════════════════ -->
+  <div id="page-invites" class="page">
+    <div class="toolbar">
+      <div class="section-title" style="margin:0">Invite Codes</div>
+      <button class="btn btn-primary" onclick="openInviteModal()">+ Create Invite</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Email</th>
+            <th>Created</th>
+            <th>Status</th>
+            <th>Used By</th>
+            <th>Used At</th>
+          </tr>
+        </thead>
+        <tbody id="invites-tbody">
+          <tr><td colspan="6" class="loading-text">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Users
+  ════════════════════════════════════════════════════════════ -->
+  <div id="page-users" class="page">
+    <div class="toolbar">
+      <div class="section-title" style="margin:0">Registered Developers</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>User ID</th>
+            <th>UPI Set</th>
+            <th>Earnings (₹)</th>
+            <th>Impressions</th>
+            <th>Joined</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr><td colspan="7" class="loading-text">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Withdrawals
+  ════════════════════════════════════════════════════════════ -->
+  <div id="page-withdrawals" class="page">
+
+    <div class="sub-section">
+      <div class="sub-section-title">Pending Approvals</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Amount (₹)</th>
+              <th>UPI ID</th>
+              <th>Requested</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawals-pending-tbody">
+            <tr><td colspan="5" class="loading-text">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <div class="sub-section-title">History</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Amount (₹)</th>
+              <th>UPI ID</th>
+              <th>Status</th>
+              <th>Ref</th>
+              <th>Resolved</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawals-history-tbody">
+            <tr><td colspan="6" class="loading-text">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       Teams
+  ════════════════════════════════════════════════════════════ -->
+  <div id="page-teams" class="page">
+    <div class="toolbar">
+      <div class="section-title" style="margin:0">Teams</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Team Name</th>
+            <th>Code</th>
+            <th>Members</th>
+            <th>Owner</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="teams-tbody">
+          <tr><td colspan="5" class="loading-text">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     Sponsor Modal
+════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="sponsor-modal-overlay" onclick="closeSponsorModalOnBg(event)">
+  <div class="modal">
+    <h2 id="sponsor-modal-title">Add New Ad</h2>
+    <input type="hidden" id="edit-id" />
+
+    <div class="form-group">
+      <label>Advertiser Name</label>
+      <input id="f-name" placeholder="e.g. Postman" />
+    </div>
+    <div class="form-group">
+      <label>Ad Text <span style="color:#475569">(shown in status bar)</span></label>
+      <input id="f-text" placeholder="e.g. Postman — test your APIs in seconds" />
+    </div>
+    <div class="form-group">
+      <label>URL</label>
+      <input id="f-url" placeholder="https://..." />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Payout (paise) <span style="color:#475569">— dev earns</span></label>
+        <input id="f-payout" type="number" value="25" min="1" />
+        <div class="hint">Default 25p (60% of 42p bid). Dev receives this per impression.</div>
+      </div>
+      <div class="form-group">
+        <label>CPM Bid (paise)</label>
+        <input id="f-bid" type="number" value="42" min="1" />
+        <div class="hint">What sponsor pays per impression.</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Daily Budget (₹) <span style="color:#475569">— optional, blank = unlimited</span></label>
+      <input id="f-budget" type="number" placeholder="e.g. 500" min="0" step="0.01" />
+      <div class="hint">Stored as paise internally. Leave blank for unlimited.</div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="f-active">
+        <option value="1">Active — serving now</option>
+        <option value="0">Paused</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSponsorModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAd()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     Invite Modal
+════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="invite-modal-overlay" onclick="closeInviteModalOnBg(event)">
+  <div class="modal">
+    <h2>Create Invite</h2>
+
+    <div class="form-group">
+      <label>Email <span style="color:#475569">— who this invite is for</span></label>
+      <input id="invite-email" type="email" placeholder="dev@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Code <span style="color:#475569">— optional, auto-generated if blank</span></label>
+      <input id="invite-code" placeholder="e.g. KICKBACK2025" />
+      <div class="hint">Leave blank to auto-generate a random code.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeInviteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createInvite()">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Helpers ──────────────────────────────────────────────────
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function timeAgo(ts) {
+    const diff = Math.floor(Date.now() / 1000) - ts;
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    return new Date(typeof ts === 'number' ? ts * 1000 : ts).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+  }
+
+  function fmtDateTime(ts) {
+    if (!ts) return '—';
+    return new Date(typeof ts === 'number' ? ts * 1000 : ts).toLocaleString('en-IN', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function paise2rupee(p) {
+    if (p == null) return '—';
+    return '₹' + (p / 100).toFixed(2);
+  }
+
+  function shortUrl(u) {
+    try { return new URL(u).hostname; } catch { return u; }
+  }
+
+  function ctrClass(ctr) {
+    const n = parseFloat(ctr);
+    if (n >= 5) return 'ctr-good';
+    if (n >= 1) return 'ctr-mid';
+    return 'ctr-low';
+  }
+
+  function setLoading(pageId, on) {
+    const el = document.getElementById('page-' + pageId);
+    if (on) el.classList.add('page-loading');
+    else el.classList.remove('page-loading');
+  }
+
+  // ── Lazy-load state ──────────────────────────────────────────
+  const loaded = {};
+
+  // ── Page navigation ──────────────────────────────────────────
+  function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    btn.classList.add('active');
+
+    if (!loaded[name]) {
+      loaded[name] = true;
+      if (name === 'overview') loadOverview();
+      if (name === 'sponsors') loadSponsors();
+      if (name === 'invites') loadInvites();
+      if (name === 'users') loadUsers();
+      if (name === 'withdrawals') loadWithdrawals();
+      if (name === 'teams') loadTeams();
+    }
+  }
+
+  // ── Overview ─────────────────────────────────────────────────
+  async function loadOverview() {
+    setLoading('overview', true);
+    try {
+      const d = await fetch('/api/overview').then(r => r.json());
+
+      document.getElementById('stat-impressions').textContent = (d.totalImpressions ?? 0).toLocaleString();
+      document.getElementById('stat-clicks').textContent = (d.totalClicks ?? 0).toLocaleString();
+      document.getElementById('stat-users').textContent = (d.uniqueUsers ?? 0).toLocaleString();
+      document.getElementById('stat-sponsors').textContent = (d.activeSponsors ?? 0).toLocaleString();
+      document.getElementById('stat-total-users').textContent = (d.totalUsers ?? 0).toLocaleString();
+      document.getElementById('stat-paid-out').textContent = paise2rupee(d.totalPaidRupees != null ? d.totalPaidRupees * 100 : d.totalPaidPaise);
+      document.getElementById('stat-today-devs').textContent = (d.todayActiveDevs ?? 0).toLocaleString();
+
+      const pw = d.pendingWithdrawals || {};
+      document.getElementById('stat-pending-wd-count').textContent = (pw.count ?? 0).toLocaleString();
+      document.getElementById('stat-pending-wd-amt').textContent = pw.totalRupees != null
+        ? paise2rupee(pw.totalRupees * 100) + ' pending'
+        : (pw.totalPaise != null ? paise2rupee(pw.totalPaise) + ' pending' : 'awaiting approval');
+
+      // Task type breakdown
+      const breakdown = d.taskTypeBreakdown || [];
+      const bSection = document.getElementById('task-breakdown-section');
+      const bChart = document.getElementById('task-breakdown-chart');
+      if (breakdown.length) {
+        bSection.style.display = '';
+        const maxN = Math.max(...breakdown.map(x => Number(x.n) || 0), 1);
+        bChart.innerHTML = breakdown.map(row => {
+          const pct = Math.round((Number(row.n) / maxN) * 100);
+          return `
+            <div class="bar-row">
+              <div class="bar-label" title="${esc(row.task_type)}">${esc(row.task_type)}</div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%"></div>
+              </div>
+              <div class="bar-count">${Number(row.n).toLocaleString()}</div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        bSection.style.display = 'none';
+      }
+
+      // Activity feed
+      const list = document.getElementById('activity-list');
+      const recent = d.recent || [];
+      if (!recent.length) {
+        list.innerHTML = '<div class="empty">No activity yet — waiting for extension users.</div>';
+      } else {
+        list.innerHTML = recent.map(r => `
+          <div class="activity-item">
+            <div class="activity-icon ${esc(r.type)}">${r.type === 'impression' ? '👁' : '🖱'}</div>
+            <div class="activity-meta">
+              <strong>${r.type === 'impression' ? 'Impression' : 'Click'}</strong> on <strong>${esc(r.sponsor_id)}</strong>
+              <div class="user">user: ${esc(String(r.user_id || '').slice(0, 16))}…</div>
+            </div>
+            <div class="activity-time">${timeAgo(r.ts)}</div>
+          </div>
+        `).join('');
+      }
+
+      // Update withdrawal badge in nav
+      updateWithdrawalBadge(pw.count || 0);
+    } catch(e) {
+      console.error('Overview load error:', e);
+    } finally {
+      setLoading('overview', false);
+    }
+  }
+
+  function updateWithdrawalBadge(count) {
+    const btn = document.getElementById('nav-withdrawals');
+    const existing = btn.querySelector('.nav-badge');
+    if (existing) existing.remove();
+    if (count > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      badge.textContent = count;
+      btn.appendChild(badge);
+    }
+  }
+
+  // Auto-refresh overview every 30 seconds
+  setInterval(() => {
+    if (document.getElementById('page-overview').classList.contains('active')) {
+      loadOverview();
+    }
+  }, 30000);
+
+  // ── Sponsors ─────────────────────────────────────────────────
+  async function loadSponsors() {
+    setLoading('sponsors', true);
+    try {
+      const sponsors = await fetch('/api/sponsors').then(r => r.json());
+      const tbody = document.getElementById('sponsors-tbody');
+      if (!sponsors.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="empty">No ads yet. Click "Add Ad" to create one.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = sponsors.map(s => {
+        const budgetDisplay = s.budget_paise_daily != null
+          ? paise2rupee(s.budget_paise_daily) + '/day'
+          : '<span style="color:#475569">Unlimited</span>';
+        return `
+          <tr>
+            <td><strong>${esc(s.name)}</strong></td>
+            <td><div class="sponsor-text" title="${esc(s.text)}">${esc(s.text)}</div></td>
+            <td><a class="sponsor-url" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(shortUrl(s.url))}</a></td>
+            <td>${s.bid_paise != null ? s.bid_paise + 'p' : (s.payout_paise || '—') + 'p'}</td>
+            <td>${budgetDisplay}</td>
+            <td>${(s.impressions || 0).toLocaleString()}</td>
+            <td>${(s.clicks || 0).toLocaleString()}</td>
+            <td class="${ctrClass(s.ctr)}">${s.ctr != null ? s.ctr + '%' : '0%'}</td>
+            <td><span class="pill ${s.active ? 'pill-green' : 'pill-gray'}">${s.active ? 'Active' : 'Paused'}</span></td>
+            <td><div class="td-actions">
+              <button class="btn btn-ghost btn-sm" onclick='openSponsorModal(${JSON.stringify(s)})'>Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteAd('${esc(s.id)}', '${esc(s.name)}')">Delete</button>
+            </div></td>
+          </tr>
+        `;
+      }).join('');
+    } catch(e) {
+      console.error('Sponsors load error:', e);
+    } finally {
+      setLoading('sponsors', false);
+    }
+  }
+
+  function openSponsorModal(sponsor) {
+    document.getElementById('sponsor-modal-title').textContent = sponsor ? 'Edit Ad' : 'Add New Ad';
+    document.getElementById('edit-id').value = sponsor ? sponsor.id : '';
+    document.getElementById('f-name').value = sponsor ? (sponsor.name || '') : '';
+    document.getElementById('f-text').value = sponsor ? (sponsor.text || '') : '';
+    document.getElementById('f-url').value = sponsor ? (sponsor.url || '') : '';
+    document.getElementById('f-payout').value = sponsor ? (sponsor.payout_paise ?? 25) : 25;
+    document.getElementById('f-bid').value = sponsor ? (sponsor.bid_paise ?? 42) : 42;
+    // budget stored as paise, show as ₹
+    if (sponsor && sponsor.budget_paise_daily != null) {
+      document.getElementById('f-budget').value = (sponsor.budget_paise_daily / 100).toFixed(2);
+    } else {
+      document.getElementById('f-budget').value = '';
+    }
+    document.getElementById('f-active').value = sponsor ? (sponsor.active ? '1' : '0') : '1';
+    document.getElementById('sponsor-modal-overlay').classList.add('open');
+    document.getElementById('f-name').focus();
+  }
+
+  function closeSponsorModal() {
+    document.getElementById('sponsor-modal-overlay').classList.remove('open');
+  }
+  function closeSponsorModalOnBg(e) {
+    if (e.target === document.getElementById('sponsor-modal-overlay')) closeSponsorModal();
+  }
+
+  async function saveAd() {
+    const id = document.getElementById('edit-id').value;
+    const budgetRaw = document.getElementById('f-budget').value.trim();
+    const body = {
+      name: document.getElementById('f-name').value.trim(),
+      text: document.getElementById('f-text').value.trim(),
+      url: document.getElementById('f-url').value.trim(),
+      payout_paise: parseInt(document.getElementById('f-payout').value) || 25,
+      bid_paise: parseInt(document.getElementById('f-bid').value) || 42,
+      budget_paise_daily: budgetRaw !== '' ? Math.round(parseFloat(budgetRaw) * 100) : null,
+      active: document.getElementById('f-active').value === '1',
+    };
+    if (!body.name || !body.text || !body.url) {
+      alert('Advertiser name, ad text, and URL are required.');
+      return;
+    }
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/api/sponsors/${id}` : '/api/sponsors';
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      closeSponsorModal();
+      loaded['sponsors'] = false;
+      loadSponsors();
+      loaded['sponsors'] = true;
+    } catch(e) {
+      alert('Error saving ad: ' + e.message);
+    }
+  }
+
+  async function deleteAd(id, name) {
+    if (!confirm(`Delete ad for "${name}"? This also removes its impression/click history.`)) return;
+    await fetch(`/api/sponsors/${id}`, { method: 'DELETE' });
+    loaded['sponsors'] = false;
+    loadSponsors();
+    loaded['sponsors'] = true;
+  }
+
+  // ── Invites ──────────────────────────────────────────────────
+  async function loadInvites() {
+    setLoading('invites', true);
+    try {
+      const invites = await fetch('/api/invites').then(r => r.json());
+      const tbody = document.getElementById('invites-tbody');
+      if (!invites.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">No invites yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = invites.map(inv => {
+        const used = !!inv.used_at;
+        return `
+          <tr>
+            <td><span class="mono">${esc(inv.code)}</span></td>
+            <td>${esc(inv.email || '—')}</td>
+            <td>${fmtDate(inv.created_at)}</td>
+            <td><span class="pill ${used ? 'pill-gray' : 'pill-green'}">${used ? 'Used' : 'Available'}</span></td>
+            <td>${inv.used_by_user_id ? '<span class="mono">' + esc(String(inv.used_by_user_id).slice(-8)) + '</span>' : '—'}</td>
+            <td>${inv.used_at ? fmtDateTime(inv.used_at) : '—'}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch(e) {
+      console.error('Invites load error:', e);
+    } finally {
+      setLoading('invites', false);
+    }
+  }
+
+  function openInviteModal() {
+    document.getElementById('invite-email').value = '';
+    document.getElementById('invite-code').value = '';
+    document.getElementById('invite-modal-overlay').classList.add('open');
+    document.getElementById('invite-email').focus();
+  }
+
+  function closeInviteModal() {
+    document.getElementById('invite-modal-overlay').classList.remove('open');
+  }
+  function closeInviteModalOnBg(e) {
+    if (e.target === document.getElementById('invite-modal-overlay')) closeInviteModal();
+  }
+
+  async function createInvite() {
+    const email = document.getElementById('invite-email').value.trim();
+    const code = document.getElementById('invite-code').value.trim();
+    if (!email) {
+      alert('Email is required.');
+      return;
+    }
+    const body = { email };
+    if (code) body.code = code;
+    try {
+      const res = await fetch('/api/invites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      closeInviteModal();
+      loaded['invites'] = false;
+      loadInvites();
+      loaded['invites'] = true;
+    } catch(e) {
+      alert('Error creating invite: ' + e.message);
+    }
+  }
+
+  // ── Users ────────────────────────────────────────────────────
+  async function loadUsers() {
+    setLoading('users', true);
+    try {
+      const users = await fetch('/api/users').then(r => r.json());
+      const tbody = document.getElementById('users-tbody');
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">No registered users yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>${esc(u.email || '—')}</td>
+          <td><span class="mono">${esc(String(u.id || '').slice(-8))}</span></td>
+          <td>${u.upi_id
+            ? '<span class="check-yes" title="' + esc(u.upi_id) + '">&#10003;</span>'
+            : '<span class="check-no">&#10007;</span>'
+          }</td>
+          <td>${paise2rupee(u.total_earned_paise)}</td>
+          <td>${(u.impression_count || 0).toLocaleString()}</td>
+          <td>${fmtDate(u.created_at)}</td>
+          <td><span class="pill ${u.status === 'active' ? 'pill-green' : 'pill-gray'}">${esc(u.status || 'active')}</span></td>
+        </tr>
+      `).join('');
+    } catch(e) {
+      console.error('Users load error:', e);
+    } finally {
+      setLoading('users', false);
+    }
+  }
+
+  // ── Withdrawals ──────────────────────────────────────────────
+  async function loadWithdrawals() {
+    setLoading('withdrawals', true);
+    try {
+      const all = await fetch('/api/withdrawals').then(r => r.json());
+      const pending = all.filter(w => w.status === 'pending');
+      const history = all.filter(w => w.status !== 'pending');
+
+      renderWithdrawalsPending(pending);
+      renderWithdrawalsHistory(history);
+
+      updateWithdrawalBadge(pending.length);
+    } catch(e) {
+      console.error('Withdrawals load error:', e);
+    } finally {
+      setLoading('withdrawals', false);
+    }
+  }
+
+  function renderWithdrawalsPending(rows) {
+    const tbody = document.getElementById('withdrawals-pending-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">No pending withdrawals.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(w => `
+      <tr id="wd-row-${esc(w.id)}">
+        <td>${esc(w.email || w.user_id || '—')}</td>
+        <td>${paise2rupee(w.amount_paise)}</td>
+        <td><span class="mono">${esc(w.upi_id || '—')}</span></td>
+        <td>${fmtDateTime(w.created_at)}</td>
+        <td>
+          <div class="td-actions">
+            <div class="ref-input-wrap" id="ref-wrap-${esc(w.id)}">
+              <button class="btn btn-success btn-sm" onclick="approveWithdrawal('${esc(w.id)}')">Approve</button>
+              <input type="text" id="ref-input-${esc(w.id)}" placeholder="Txn ref (optional)" />
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="rejectWithdrawal('${esc(w.id)}', '${esc(w.email || w.user_id)}')">Reject</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderWithdrawalsHistory(rows) {
+    const tbody = document.getElementById('withdrawals-history-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No history yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(w => {
+      const pillClass = w.status === 'completed' ? 'pill-green' : w.status === 'rejected' ? 'pill-red' : 'pill-yellow';
+      return `
+        <tr>
+          <td>${esc(w.email || w.user_id || '—')}</td>
+          <td>${paise2rupee(w.amount_paise)}</td>
+          <td><span class="mono">${esc(w.upi_id || '—')}</span></td>
+          <td><span class="pill ${pillClass}">${esc(w.status)}</span></td>
+          <td><span class="mono">${esc(w.ref || '—')}</span></td>
+          <td>${w.resolved_at ? fmtDateTime(w.resolved_at) : '—'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function approveWithdrawal(id) {
+    const ref = document.getElementById('ref-input-' + id)?.value?.trim() || '';
+    const body = { status: 'completed' };
+    if (ref) body.ref = ref;
+    try {
+      const res = await fetch(`/api/withdrawals/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      loaded['withdrawals'] = false;
+      loadWithdrawals();
+      loaded['withdrawals'] = true;
+    } catch(e) {
+      alert('Error approving: ' + e.message);
+    }
+  }
+
+  async function rejectWithdrawal(id, label) {
+    if (!confirm(`Reject withdrawal for "${label}"?`)) return;
+    try {
+      const res = await fetch(`/api/withdrawals/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected' })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      loaded['withdrawals'] = false;
+      loadWithdrawals();
+      loaded['withdrawals'] = true;
+    } catch(e) {
+      alert('Error rejecting: ' + e.message);
+    }
+  }
+
+  // ── Teams ────────────────────────────────────────────────────
+  async function loadTeams() {
+    setLoading('teams', true);
+    try {
+      const teams = await fetch('/api/teams').then(r => r.json());
+      const tbody = document.getElementById('teams-tbody');
+      if (!teams.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No teams yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = teams.map(t => `
+        <tr>
+          <td><strong>${esc(t.name)}</strong></td>
+          <td><span class="mono">${esc(t.code)}</span></td>
+          <td>${(t.member_count || 0).toLocaleString()}</td>
+          <td><span class="mono">${esc(String(t.owner_id || '').slice(-8))}</span></td>
+          <td>${fmtDate(t.created_at)}</td>
+        </tr>
+      `).join('');
+    } catch(e) {
+      console.error('Teams load error:', e);
+    } finally {
+      setLoading('teams', false);
+    }
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  // Load overview on startup and seed the withdrawal badge
+  (async () => {
+    loaded['overview'] = true;
+    await loadOverview();
+  })();
+</script>
+</body>
+</html>

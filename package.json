@@ -1,0 +1,99 @@
+{
+  "name": "kickback-status",
+  "displayName": "Kickback Status — Get Paid for Waiting",
+  "description": "Shows a sponsored line in your status bar while you wait on builds, installs, and tests. You get a share of the revenue.",
+  "version": "0.0.1",
+  "publisher": "your-publisher-id",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "kickbackStatus.activate",
+        "title": "Kickback Status: Activate with Invite Code"
+      },
+      {
+        "command": "kickbackStatus.showEarnings",
+        "title": "Kickback Status: Show My Earnings"
+      },
+      {
+        "command": "kickbackStatus.syncEarnings",
+        "title": "Kickback Status: Sync Earnings from Server"
+      },
+      {
+        "command": "kickbackStatus.setUpiId",
+        "title": "Kickback Status: Set Payout UPI ID"
+      },
+      {
+        "command": "kickbackStatus.withdraw",
+        "title": "Kickback Status: Withdraw Earnings to UPI"
+      },
+      {
+        "command": "kickbackStatus.createTeam",
+        "title": "Kickback Status: Create Team Pool"
+      },
+      {
+        "command": "kickbackStatus.joinTeam",
+        "title": "Kickback Status: Join Team Pool"
+      },
+      {
+        "command": "kickbackStatus.showTeam",
+        "title": "Kickback Status: Show Team Leaderboard"
+      },
+      {
+        "command": "kickbackStatus.openSettings",
+        "title": "Kickback Status: Open Settings"
+      },
+      {
+        "command": "kickbackStatus.testAd",
+        "title": "Kickback Status: Test Ad (10s demo)"
+      }
+    ],
+    "configuration": {
+      "title": "Kickback Status",
+      "properties": {
+        "kickbackStatus.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Backend URL that serves the current sponsor line and records impressions."
+        },
+        "kickbackStatus.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show sponsored status bar messages during long-running tasks."
+        },
+        "kickbackStatus.minTaskSeconds": {
+          "type": "number",
+          "default": 3,
+          "description": "Minimum task duration (seconds) before a sponsored line is shown. Avoids flicker on instant tasks."
+        },
+        "kickbackStatus.adRotationSeconds": {
+          "type": "number",
+          "default": 30,
+          "description": "Seconds between ad rotations during a long-running task. Each rotation is a new impression."
+        },
+        "kickbackStatus.earningsFlashSeconds": {
+          "type": "number",
+          "default": 4,
+          "description": "Seconds the post-task 'Earned ₹X.XX this build' message stays visible before hiding."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^2.24.0"
+  }
+}
