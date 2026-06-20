@@ -739,7 +739,7 @@
       document.getElementById('stat-sponsors').textContent = (d.activeSponsors ?? 0).toLocaleString();
       document.getElementById('stat-total-users').textContent = (d.totalUsers ?? 0).toLocaleString();
       document.getElementById('stat-paid-out').textContent = paise2rupee(d.totalPaidRupees != null ? d.totalPaidRupees * 100 : d.totalPaidPaise);
-      document.getElementById('stat-today-devs').textContent = (d.todayActiveDevs ?? 0).toLocaleString();
+      document.getElementById('stat-today-devs').textContent = (d.activeDevsToday ?? 0).toLocaleString();
 
       const pw = d.pendingWithdrawals || {};
       document.getElementById('stat-pending-wd-count').textContent = (pw.count ?? 0).toLocaleString();

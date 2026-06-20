@@ -59,6 +59,6 @@ export class AuthStore {
 
   async isRegistered(): Promise<boolean> {
     const token = await this.getToken();
-    return !!token;
+    return !!token && !this.isAccessTokenExpired();
   }
 }

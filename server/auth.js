@@ -13,6 +13,10 @@ if (process.env.RSA_PRIVATE_KEY) {
   privateKey = createPrivateKey(process.env.RSA_PRIVATE_KEY.replace(/\\n/g, "\n"));
   publicKey  = createPublicKey(privateKey);
 } else {
+  if (process.env.NODE_ENV === "production") {
+    console.error("[auth] FATAL: RSA_PRIVATE_KEY must be set in production. Exiting.");
+    process.exit(1);
+  }
   const pair = generateKeyPairSync("rsa", { modulusLength: 2048 });
   privateKey = pair.privateKey;
   publicKey  = pair.publicKey;

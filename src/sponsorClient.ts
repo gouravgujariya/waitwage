@@ -38,90 +38,150 @@ export class SponsorClient {
 
   async fetchCurrentLine(taskType?: string): Promise<SponsorLine | undefined> {
     const qs = taskType ? `?taskType=${encodeURIComponent(taskType)}` : "";
-    const data = await this.request("GET", `/v1/sponsor-line${qs}`);
-    if (!data) return undefined;
-    return JSON.parse(data) as SponsorLine;
+    try {
+      const data = await this.request("GET", `/v1/sponsor-line${qs}`);
+      if (!data) return undefined;
+      return JSON.parse(data) as SponsorLine;
+    } catch {
+      return undefined;
+    }
   }
 
   async recordImpression(lineId: string, taskType?: string): Promise<void> {
-    await this.request("POST", "/v1/impressions", { lineId, taskType });
+    try {
+      await this.request("POST", "/v1/impressions", { lineId, taskType });
+    } catch {
+      // Best-effort fire-and-forget; backend will reconcile on next sync.
+    }
   }
 
   async recordClick(lineId: string): Promise<void> {
-    await this.request("POST", "/v1/clicks", { lineId });
+    try {
+      await this.request("POST", "/v1/clicks", { lineId });
+    } catch {
+      // Best-effort fire-and-forget.
+    }
   }
 
   async fetchEarnings(): Promise<{ totalPaise: number; impressionCount: number } | undefined> {
-    const data = await this.request("GET", "/v1/earnings");
-    if (!data) return undefined;
-    return JSON.parse(data) as { totalPaise: number; impressionCount: number };
+    try {
+      const data = await this.request("GET", "/v1/earnings");
+      if (!data) return undefined;
+      return JSON.parse(data) as { totalPaise: number; impressionCount: number };
+    } catch {
+      return undefined;
+    }
   }
 
   // ── Auth ─────────────────────────────────────────────────────────────────
 
   async register(inviteCode: string): Promise<{ accessToken: string; refreshToken: string; userId: string }> {
+    // request() now rejects with an Error whose message is the backend error code.
+    // Network failures resolve to undefined — treat those as a generic failure.
     const data = await this.request("POST", "/v1/register", { inviteCode }, { skipAuth: true });
     if (!data) throw new Error("Registration failed — could not reach backend");
-    const result = JSON.parse(data) as { accessToken?: string; refreshToken?: string; userId?: string; error?: string };
-    if (result.error) throw new Error(result.error);
-    return result as { accessToken: string; refreshToken: string; userId: string };
+    return JSON.parse(data) as { accessToken: string; refreshToken: string; userId: string };
+  }
+
+  async login(inviteCode: string): Promise<{ accessToken: string; refreshToken: string; userId: string }> {
+    // request() rejects with an Error whose message is the backend error code
+    // (e.g. "invalid_code", "account_revoked"). Network failures resolve to undefined.
+    const data = await this.request("POST", "/v1/login", { inviteCode }, { skipAuth: true });
+    if (!data) throw new Error("Login failed — could not reach backend");
+    return JSON.parse(data) as { accessToken: string; refreshToken: string; userId: string };
   }
 
   async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string } | undefined> {
     // Does NOT use the Authorization header — the refresh token is the credential.
-    const data = await this.request("POST", "/v1/token/refresh", { refreshToken }, { skipAuth: true });
-    if (!data) return undefined;
-    return JSON.parse(data) as { accessToken: string; refreshToken: string };
+    try {
+      const data = await this.request("POST", "/v1/token/refresh", { refreshToken }, { skipAuth: true });
+      if (!data) return undefined;
+      return JSON.parse(data) as { accessToken: string; refreshToken: string };
+    } catch {
+      return undefined;
+    }
   }
 
   async fetchMe(): Promise<{ user: { id: string; email: string; upi_id?: string }; team: TeamInfo | null } | undefined> {
-    const data = await this.request("GET", "/v1/me");
-    if (!data) return undefined;
-    return JSON.parse(data);
+    try {
+      const data = await this.request("GET", "/v1/me");
+      if (!data) return undefined;
+      return JSON.parse(data);
+    } catch {
+      return undefined;
+    }
   }
 
   // ── UPI & Withdrawals ────────────────────────────────────────────────────
 
   async setUpiId(upiId: string): Promise<boolean> {
-    const data = await this.request("PUT", "/v1/profile/upi", { upiId });
-    return !!data;
+    try {
+      const data = await this.request("PUT", "/v1/profile/upi", { upiId });
+      return !!data;
+    } catch {
+      return false;
+    }
   }
 
   async requestWithdrawal(): Promise<{ ok: boolean; amountPaise?: number; message?: string; error?: string } | undefined> {
-    const data = await this.request("POST", "/v1/withdraw");
-    if (!data) return undefined;
-    return JSON.parse(data);
+    try {
+      const data = await this.request("POST", "/v1/withdraw");
+      if (!data) return undefined;
+      return JSON.parse(data);
+    } catch {
+      return undefined;
+    }
   }
 
   async fetchWithdrawalHistory(): Promise<Array<{ id: number; amount_paise: number; upi_id: string; status: string; created_at: number }> | undefined> {
-    const data = await this.request("GET", "/v1/withdraw/history");
-    if (!data) return undefined;
-    return JSON.parse(data);
+    try {
+      const data = await this.request("GET", "/v1/withdraw/history");
+      if (!data) return undefined;
+      return JSON.parse(data);
+    } catch {
+      return undefined;
+    }
   }
 
   // ── Team Pool ────────────────────────────────────────────────────────────
 
   async createTeam(name: string): Promise<{ ok: boolean; teamId?: string; code?: string; error?: string } | undefined> {
-    const data = await this.request("POST", "/v1/teams", { name });
-    if (!data) return undefined;
-    return JSON.parse(data);
+    try {
+      const data = await this.request("POST", "/v1/teams", { name });
+      if (!data) return undefined;
+      return JSON.parse(data);
+    } catch {
+      return undefined;
+    }
   }
 
   async joinTeam(code: string): Promise<{ ok: boolean; teamId?: string; name?: string; error?: string } | undefined> {
-    const data = await this.request("POST", "/v1/teams/join", { code });
-    if (!data) return undefined;
-    return JSON.parse(data);
+    try {
+      const data = await this.request("POST", "/v1/teams/join", { code });
+      if (!data) return undefined;
+      return JSON.parse(data);
+    } catch {
+      return undefined;
+    }
   }
 
   async leaveTeam(): Promise<boolean> {
-    const data = await this.request("DELETE", "/v1/teams/leave");
-    return !!data;
+    try {
+      const data = await this.request("DELETE", "/v1/teams/leave");
+      return !!data;
+    } catch {
+      return false;
+    }
   }
 
   async fetchTeamInfo(): Promise<TeamInfo | null | undefined> {
-    const data = await this.request("GET", "/v1/teams/me");
-    if (!data) return undefined;
-    return JSON.parse(data);
+    try {
+      const data = await this.request("GET", "/v1/teams/me");
+      if (!data) return undefined;
+      return JSON.parse(data);
+    } catch {
+      return undefined;
+    }
   }
 
   // ── HTTP core ────────────────────────────────────────────────────────────
@@ -134,7 +194,7 @@ export class SponsorClient {
   ): Promise<string | undefined> {
     const token = opts?.skipAuth ? undefined : await this.token?.();
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       try {
         const url = new URL(path, this.backendUrl);
         const lib = url.protocol === "https:" ? https : http;
@@ -150,7 +210,22 @@ export class SponsorClient {
         const req = lib.request(url, { method, headers, timeout: 3000 }, (res) => {
           let raw = "";
           res.on("data", (chunk) => (raw += chunk));
-          res.on("end", () => resolve(res.statusCode === 200 || res.statusCode === 201 ? raw : undefined));
+          res.on("end", () => {
+            const status = res.statusCode ?? 0;
+            if (status === 200 || status === 201) {
+              resolve(raw);
+            } else {
+              // Attempt to extract a machine-readable error code from the body
+              // so callers can branch on specific error strings (e.g. "invalid_code").
+              try {
+                const parsed = JSON.parse(raw) as { error?: string; message?: string };
+                const code = parsed.error ?? parsed.message ?? `http_${status}`;
+                reject(new Error(code));
+              } catch {
+                reject(new Error(`http_${status}`));
+              }
+            }
+          });
         });
 
         req.on("error", () => resolve(undefined));
