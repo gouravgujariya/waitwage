@@ -29,9 +29,11 @@ function requireAuth(req, res, next) {
 
 function adminAuth(req, res, next) {
   const key = req.headers["x-admin-key"];
-  if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
-    // In dev with no ADMIN_KEY set, allow access so the dashboard still works
-    if (!process.env.ADMIN_KEY) return next();
+  if (!process.env.ADMIN_KEY) {
+    if (process.env.NODE_ENV !== "production") return next();
+    return res.status(503).json({ error: "admin_not_configured" });
+  }
+  if (key !== process.env.ADMIN_KEY) {
     return res.status(401).json({ error: "unauthorized" });
   }
   next();

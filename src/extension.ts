@@ -183,6 +183,36 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // ── Sign in with invite code (returning users) ────────────────────────────
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("kickbackStatus.login", async () => {
+      const code = await vscode.window.showInputBox({
+        prompt: "Enter your Kickback Status invite code to sign back in",
+        placeHolder: "KICK-XXXX-XXXX-XX",
+        ignoreFocusOut: true,
+      });
+      if (!code) return;
+
+      try {
+        const result = await sponsorClient.login(code.trim().toUpperCase());
+        await authStore.setTokens(result.accessToken, result.refreshToken, result.userId);
+        vscode.window.showInformationMessage(
+          "Kickback Status: Signed in successfully! You will resume earning on your next build."
+        );
+      } catch (err: any) {
+        const msg = err?.message || "unknown error";
+        vscode.window.showErrorMessage(
+          msg === "invalid_code"
+            ? "Invalid invite code. Use the same code you registered with."
+            : msg === "account_revoked"
+            ? "Your account has been revoked. Contact the Kickback team."
+            : `Kickback Status: sign-in failed — ${msg}`
+        );
+      }
+    })
+  );
+
   // ── Set UPI ID ────────────────────────────────────────────────────────────
 
   context.subscriptions.push(
@@ -292,6 +322,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showWarningMessage("You are already in a team. Use 'Kickback: Leave Team' first.");
         return;
       }
+      if (result.error === "already_member") {
+        vscode.window.showWarningMessage("You are already a member of this team.");
+        return;
+      }
       if (result.ok) {
         vscode.window.showInformationMessage(`Joined team "${result.name}"! Your builds now contribute to the team pool.`);
       }
@@ -385,6 +419,14 @@ export function activate(context: vscode.ExtensionContext) {
       if (result?.accessToken) {
         await authStore.setAccessToken(result.accessToken);
         await authStore.setRefreshToken(result.refreshToken);
+      } else {
+        const action = await vscode.window.showWarningMessage(
+          "Kickback Status: Session expired. Re-enter your invite code to continue earning.",
+          "Re-activate"
+        );
+        if (action === "Re-activate") {
+          vscode.commands.executeCommand("kickbackStatus.activate");
+        }
       }
     });
   }

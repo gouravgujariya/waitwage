@@ -33,16 +33,42 @@ app.post("/v1/register", (req, res) => {
   if (!invite) return res.status(403).json({ error: "invalid_or_used_code" });
 
   const userId = randomUUID();
-  db.prepare("INSERT INTO users (id, email, invite_code) VALUES (?, ?, ?)")
-    .run(userId, invite.email, invite.code);
-  db.prepare("UPDATE beta_invites SET used_at = ?, used_by_user_id = ? WHERE code = ?")
-    .run(Math.floor(Date.now() / 1000), userId, invite.code);
-
   const refreshToken = randomUUID();
-  db.prepare("INSERT INTO refresh_tokens (id, user_id) VALUES (?, ?)").run(refreshToken, userId);
+
+  try {
+    db.transaction(() => {
+      db.prepare("INSERT INTO users (id, email, invite_code) VALUES (?, ?, ?)").run(userId, invite.email, invite.code);
+      db.prepare("UPDATE beta_invites SET used_at = ?, used_by_user_id = ? WHERE code = ?").run(Math.floor(Date.now() / 1000), userId, invite.code);
+      db.prepare("INSERT INTO refresh_tokens (id, user_id) VALUES (?, ?)").run(refreshToken, userId);
+    })();
+  } catch (e) {
+    console.error("[register] DB error:", e.message);
+    return res.status(500).json({ error: "registration_failed" });
+  }
 
   console.log(`[register] new user ${userId} via code ${code}`);
   res.json({ accessToken: signAccessToken(userId), refreshToken, userId });
+});
+
+// POST /v1/login  — sign in again using an already-used invite code
+app.post("/v1/login", (req, res) => {
+  const parse = z.object({ inviteCode: z.string().min(1) }).safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: "inviteCode required" });
+
+  const code = parse.data.inviteCode.toUpperCase().trim();
+  const invite = db.prepare(
+    "SELECT * FROM beta_invites WHERE code = ? AND used_by_user_id IS NOT NULL"
+  ).get(code);
+  if (!invite) return res.status(403).json({ error: "invalid_code" });
+
+  const user = db.prepare("SELECT status FROM users WHERE id = ?").get(invite.used_by_user_id);
+  if (!user || user.status === "revoked") return res.status(403).json({ error: "account_revoked" });
+
+  const refreshToken = randomUUID();
+  db.prepare("INSERT INTO refresh_tokens (id, user_id) VALUES (?, ?)").run(refreshToken, invite.used_by_user_id);
+
+  console.log(`[login] user=${invite.used_by_user_id} via code ${code}`);
+  res.json({ accessToken: signAccessToken(invite.used_by_user_id), refreshToken, userId: invite.used_by_user_id });
 });
 
 // GET /v1/me  — lightweight token validation + profile
@@ -463,6 +489,10 @@ app.get("/api/overview", (req, res) => {
     "SELECT task_type, COUNT(*) as n FROM impressions WHERE task_type IS NOT NULL GROUP BY task_type ORDER BY n DESC"
   ).all();
 
+  const activeDevs = db.prepare(
+    "SELECT COUNT(DISTINCT user_id) as n FROM impressions WHERE ts > unixepoch() - 86400"
+  ).get().n;
+
   const recentImpressions = db.prepare(
     "SELECT 'impression' as type, user_id, sponsor_id, ts FROM impressions ORDER BY ts DESC LIMIT 5"
   ).all();
@@ -476,6 +506,7 @@ app.get("/api/overview", (req, res) => {
     totalPaidRupees: (totalPaid / 100).toFixed(2),
     pendingWithdrawals: { count: pendingWithdrawals.n, totalRupees: (pendingWithdrawals.total / 100).toFixed(2) },
     taskTypeBreakdown,
+    activeDevsToday: activeDevs,
     recent,
   });
 });

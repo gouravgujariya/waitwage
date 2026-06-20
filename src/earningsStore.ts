@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { randomUUID } from "crypto";
 
-const KEY_USER_ID        = "kickbackStatus.userId";
+const KEY_USER_ID        = "kickbackStatus.localUserId";
 const KEY_TOTAL_PAISE    = "kickbackStatus.totalEarningsPaise";
 const KEY_IMPRESSIONS    = "kickbackStatus.impressionCount";
 const KEY_SERVER_PAISE   = "kickbackStatus.serverBalancePaise";

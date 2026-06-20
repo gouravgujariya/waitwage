@@ -1019,8 +1019,8 @@ setInterval(() => {
   // ⚠️ Replace these two values after you create your Supabase project:
   // Project URL  →  Supabase dashboard → Settings → API → Project URL
   // Anon key     →  Supabase dashboard → Settings → API → anon public key
-  const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-  const SUPABASE_KEY = 'YOUR_ANON_KEY';
+  const SUPABASE_URL = '__SUPABASE_URL__';
+  const SUPABASE_KEY = '__SUPABASE_ANON_KEY__';
   const TABLE        = 'early_users';
   const TOTAL_SPOTS  = 500;
 
@@ -1073,6 +1073,11 @@ setInterval(() => {
 
       if (res.ok) {
         form.style.display = 'none';
+        successEl.innerHTML = `
+          <div style="font-size:1.8rem;margin-bottom:.4rem;">🎉</div>
+          <div style="font-weight:700;color:var(--green);font-size:1.05rem;">You're on the list!</div>
+          <div style="color:var(--muted);font-size:.9rem;margin-top:.4rem;">Check your email — we'll reach out personally before the public launch.</div>
+        `;
         successEl.style.display = 'block';
         fetchCount();
       } else {
@@ -1084,7 +1089,11 @@ setInterval(() => {
         throw new Error(body.message || 'Something went wrong. Please try again.');
       }
     } catch (err) {
-      errorEl.textContent = err.message;
+      /* Show a user-friendly message; avoid leaking raw network errors */
+      const isUserFacing = err.message && !err.message.includes('fetch') && !err.message.includes('NetworkError');
+      errorEl.textContent = isUserFacing
+        ? err.message
+        : 'Something went wrong. Please try again or contact us directly.';
       errorEl.style.display = 'block';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Request Early Access →';
