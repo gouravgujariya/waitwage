@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advertise to Developers — WaitWage</title>
+  <meta name="description" content="Reach developers at peak attention during builds, tests, and deploys. Auction-based CPM/CPC slots. Minimum ₹500 to start." />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    .hero { min-height: 55vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8rem 2rem 4rem; }
+    h1 { font-size: clamp(2.2rem, 5.5vw, 3.8rem); font-weight: 900; line-height: 1.08; letter-spacing: -.03em; max-width: 760px; }
+    h1 .highlight { background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient-shift 4s linear infinite; }
+    .hero-sub { margin-top: 1.2rem; font-size: 1.1rem; color: var(--muted); max-width: 520px; }
+
+    .bid-table { width: 100%; border-collapse: collapse; margin-top: 2rem; font-size: .9rem; }
+    .bid-table th { text-align: left; padding: .75rem 1rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    .bid-table td { padding: .75rem 1rem; border-bottom: 1px solid rgba(48,54,61,.5); }
+    .bid-table tr:last-child td { border-bottom: none; }
+    .bid-table tbody tr { transition: background .2s; }
+    .bid-table tbody tr:hover { background: rgba(255,255,255,.02); }
+    .badge-slot { display: inline-block; padding: .2rem .6rem; border-radius: 100px; font-size: .75rem; font-weight: 700; }
+    .badge-prime { background: rgba(247,129,102,.15); color: var(--orange); }
+    .badge-peak  { background: rgba(0,230,118,.12);   color: var(--green); }
+    .badge-off   { background: rgba(139,148,158,.1);  color: var(--muted); }
+
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2.5rem; }
+
+    .spec-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+
+    .budget-calc { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-top: 2.5rem; }
+    .budget-calc label { color: var(--muted); font-size: .85rem; display: block; margin-bottom: .4rem; }
+    .calc-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: .65rem 1rem; color: var(--text); font-size: .95rem; outline: none; transition: border-color .2s; }
+    .calc-input:focus { border-color: var(--blue); }
+    select.calc-input { cursor: pointer; }
+    select.calc-input option { background: var(--surface2); }
+  </style>
+</head>
+<body>
+
+<div class="orb-container">
+  <div class="orb orb-1" style="background:radial-gradient(circle,#58a6ff,transparent 70%);"></div>
+  <div class="orb orb-2" style="background:radial-gradient(circle,#bc8cff,transparent 70%);"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4" style="background:radial-gradient(circle,#58a6ff,transparent 70%);"></div>
+</div>
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <span class="live-dot"></span>
+    <span class="logo-w">Wait</span>Wage
+  </a>
+  <div class="nav-links">
+    <a href="how-it-works.html" class="hide-mobile">How It Works</a>
+    <a href="earnings.html" class="hide-mobile">Earnings</a>
+    <a href="index.html#install" class="hide-mobile">Install</a>
+    <a href="advertisers.html" class="hide-mobile" style="color:var(--text);">Advertise</a>
+    <a class="nav-cta" href="mailto:er.gouravgujariya@gmail.com?subject=WaitWage Advertiser Inquiry" style="background:var(--blue);">Get Started</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge fade-up" style="background:rgba(88,166,255,.08);border-color:rgba(88,166,255,.22);color:var(--blue);">
+    📣 Advertiser Portal
+  </div>
+  <h1 class="fade-up delay-1">Reach developers when they're<br/><span class="highlight">captive and paying attention.</span></h1>
+  <p class="hero-sub fade-up delay-2">Not scrolling a feed. Not watching a video. Waiting on a build they care about — every second.</p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:2rem;" class="fade-up delay-3">
+    <a class="btn-primary" href="mailto:er.gouravgujariya@gmail.com?subject=WaitWage Advertiser Inquiry" style="background:var(--blue);color:#000;">Contact Us to Get Started</a>
+    <a class="btn-secondary" href="#slots">See Slot Pricing ↓</a>
+  </div>
+</section>
+
+<!-- How it works for advertisers -->
+<section style="background:rgba(22,27,34,.8);backdrop-filter:blur(4px);">
+  <div class="container">
+    <div class="section-label">For Advertisers</div>
+    <h2 class="section-title">Three steps to your first impression</h2>
+    <div class="how-grid">
+      <div class="step-card">
+        <span class="step-num">01</span>
+        <span class="step-icon">✍️</span>
+        <h3>Set your bid</h3>
+        <p>Choose CPM or CPC pricing. Set a max bid per slot type. A second-price auction runs per impression — you pay ₹0.01 above the second-highest bid.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">02</span>
+        <span class="step-icon">🎯</span>
+        <h3>Choose your slot</h3>
+        <p>Target by slot type: Build, Test, or Install. Each reaches a different developer profile. Stack multiple slot types at different bids.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">03</span>
+        <span class="step-icon">📊</span>
+        <h3>Watch it run</h3>
+        <p>Real-time impression and click reporting. Pause, adjust bid, or top up credit any time. No minimum commitment beyond the ₹500 starting credit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slot pricing table -->
+<section id="slots">
+  <div class="container">
+    <div class="section-label">Slot Pricing</div>
+    <h2 class="section-title">Three slot types. One audience.</h2>
+    <p class="section-sub">Every slot is one line of text + one URL. Developers see it in the VS Code status bar — same place they check build status.</p>
+
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table class="bid-table">
+        <thead>
+          <tr>
+            <th>Slot Type</th>
+            <th>Triggers when…</th>
+            <th>Audience</th>
+            <th>Typical CPM</th>
+            <th>Est. daily impr. (500 devs)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Build Slot</strong></td>
+            <td><code>npm run build</code>, <code>cargo build</code>, webpack…</td>
+            <td>Frontend &amp; fullstack</td>
+            <td>₹2–8</td>
+            <td>~1,000</td>
+            <td><span class="badge-slot badge-prime">Prime</span></td>
+          </tr>
+          <tr>
+            <td><strong>Test Slot</strong></td>
+            <td><code>jest</code>, <code>pytest</code>, <code>go test</code>…</td>
+            <td>Backend &amp; platform</td>
+            <td>₹1.5–6</td>
+            <td>~800</td>
+            <td><span class="badge-slot badge-peak">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>Install Slot</strong></td>
+            <td><code>npm install</code>, <code>pip install</code>, <code>docker pull</code>…</td>
+            <td>All developers</td>
+            <td>₹1–4</td>
+            <td>~600</td>
+            <td><span class="badge-slot badge-peak">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>Custom / Retargeting</strong></td>
+            <td>Specific task patterns (regex)</td>
+            <td>Your target persona</td>
+            <td>Custom</td>
+            <td>—</td>
+            <td><span class="badge-slot badge-off">Coming Q3</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Budget calculator -->
+<section style="background:rgba(22,27,34,.8);backdrop-filter:blur(4px);">
+  <div class="container" style="max-width:700px;">
+    <div class="section-label">Budget Estimator</div>
+    <h2 class="section-title">How far does your budget go?</h2>
+    <p class="section-sub">Estimate impressions and reach before you spend a rupee.</p>
+
+    <div class="budget-calc">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+        <div>
+          <label for="budget">Monthly budget (₹)</label>
+          <input class="calc-input" type="number" id="budget" value="2000" min="500" step="100" />
+        </div>
+        <div>
+          <label for="slotType">Slot type</label>
+          <select class="calc-input" id="slotType">
+            <option value="5">Build Slot (avg ₹5 CPM)</option>
+            <option value="3.75" selected>Test Slot (avg ₹3.75 CPM)</option>
+            <option value="2.5">Install Slot (avg ₹2.5 CPM)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-top:1.5rem;">
+        <div style="text-align:center;padding:1rem;background:var(--surface);border-radius:10px;border:1px solid var(--border);">
+          <div id="resImpressions" style="font-size:1.8rem;font-weight:900;color:var(--blue);">533K</div>
+          <div style="color:var(--muted);font-size:.8rem;margin-top:.3rem;">impressions</div>
+        </div>
+        <div style="text-align:center;padding:1rem;background:var(--surface);border-radius:10px;border:1px solid var(--border);">
+          <div id="resDays" style="font-size:1.8rem;font-weight:900;color:var(--purple);">~30</div>
+          <div style="color:var(--muted);font-size:.8rem;margin-top:.3rem;">days of coverage</div>
+        </div>
+        <div style="text-align:center;padding:1rem;background:var(--surface);border-radius:10px;border:1px solid rgba(0,230,118,.3);">
+          <div id="resClicks" style="font-size:1.8rem;font-weight:900;color:var(--green);">~10K</div>
+          <div style="color:var(--muted);font-size:.8rem;margin-top:.3rem;">est. clicks (2% CTR)</div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.78rem;margin-top:1rem;">CPM = cost per 1,000 impressions. Estimates assume 500 active developers, typical usage. Actual impressions may vary.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Ad format spec -->
+<section>
+  <div class="container">
+    <div class="section-label">Ad Format</div>
+    <h2 class="section-title">One line. Maximum signal.</h2>
+    <p class="section-sub">Your ad appears exactly where developers are already looking — the VS Code status bar.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.5rem;flex-wrap:wrap;">
+
+      <div>
+        <h3 style="margin-bottom:1.2rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Format rules</h3>
+        <div class="spec-card" style="display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--muted);">Text length</span>
+            <strong>Max 160 characters</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:1rem;">
+            <span style="color:var(--muted);">Logo / icon</span>
+            <strong>1 emoji or 16×16px PNG</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:1rem;">
+            <span style="color:var(--muted);">Destination URL</span>
+            <strong>1 clickable link</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:1rem;">
+            <span style="color:var(--muted);">Categories allowed</span>
+            <strong style="color:var(--green);">All (18+ gating auto)</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:1rem;">
+            <span style="color:var(--muted);">Minimum spend</span>
+            <strong>₹500</strong>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:1.2rem;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Live preview</h3>
+        <div class="vscode-window">
+          <div class="vscode-titlebar">
+            <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+          </div>
+          <div class="vscode-tabs">
+            <div class="vscode-tab active">index.ts</div>
+          </div>
+          <div class="vscode-editor" style="min-height:70px;">
+            <div><span class="ln">1</span> <span class="cm">// ⚙ Running tests…</span></div>
+            <div><span class="ln">2</span> <span class="kw">await</span> <span class="fn">runTests</span>();</div>
+          </div>
+          <div class="vscode-statusbar">
+            <div class="statusbar-left">
+              <span>⎇ main</span><span>⚙ Testing…</span>
+            </div>
+            <div class="statusbar-right">
+              <div class="statusbar-ad">
+                📣 <span id="adPreviewText">Your ad message here →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <input type="text" id="adInput" class="calc-input" style="margin-top:.8rem;" maxlength="160"
+               placeholder="Type your ad copy here to preview it…"
+               value="Your Company — Try our dev tool for free →" />
+        <div style="color:var(--muted);font-size:.75rem;margin-top:.4rem;text-align:right;">
+          <span id="charCount">41</span> / 160 characters
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:3rem;text-align:center;">
+      <a class="btn-primary" href="mailto:er.gouravgujariya@gmail.com?subject=WaitWage Advertiser Inquiry" style="background:var(--blue);color:#000;">Contact Us to Get Started</a>
+      <p style="color:var(--muted);font-size:.82rem;margin-top:1rem;">We'll respond within 24h with next steps and onboarding details.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">⚡ <span>Wait</span>Wage</div>
+  <p style="margin-top:.4rem;">Open source · MIT licence · Built for developers, by a developer</p>
+  <div style="margin-top:1rem;display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;">
+    <a href="how-it-works.html">How It Works</a>
+    <a href="earnings.html">Earnings</a>
+    <a href="advertisers.html">Advertise</a>
+    <a href="index.html#india">India</a>
+    <a href="https://github.com/gouravgujariya/waitwage" target="_blank" rel="noopener">GitHub</a>
+    <a href="mailto:er.gouravgujariya@gmail.com">Contact</a>
+    <a href="index.html#faq">FAQ</a>
+  </div>
+  <p style="margin-top:1.5rem;font-size:.78rem;color:#3e4450;">© 2026 WaitWage. Making idle time less idle.</p>
+</footer>
+
+<script>
+/* ── CANVAS PARTICLE NETWORK ── */
+(function () {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles, mouse = { x: -999, y: -999 };
+  const COLORS = ['#58a6ff', '#bc8cff', '#00e676'];
+  const SYMBOLS = ['₹', '$', '>', '{', '}', '//', '→', '⚡'];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function createParticle() {
+    const isSymbol = Math.random() < 0.12;
+    return { x: Math.random()*W, y: Math.random()*H, vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
+      r:isSymbol?0:Math.random()*1.8+.6, symbol:isSymbol?SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]:null,
+      color:COLORS[Math.floor(Math.random()*COLORS.length)], alpha:Math.random()*.5+.15 };
+  }
+  function init() { resize(); particles = Array.from({length:Math.min(Math.floor(W*H/14000),90)},createParticle); }
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<140){ctx.beginPath();ctx.strokeStyle=particles[i].color;ctx.globalAlpha=(1-dist/140)*.08;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}
+    }
+    ctx.globalAlpha=1;
+    for(const p of particles){
+      const mdx=p.x-mouse.x,mdy=p.y-mouse.y,mdist=Math.sqrt(mdx*mdx+mdy*mdy);
+      if(mdist<120){const force=(120-mdist)/120*.8;p.vx+=(mdx/mdist)*force*.06;p.vy+=(mdy/mdist)*force*.06;}
+      const speed=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+      if(speed>1.2){p.vx=(p.vx/speed)*1.2;p.vy=(p.vy/speed)*1.2;}
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;if(p.y<-10)p.y=H+10;if(p.y>H+10)p.y=-10;
+      ctx.globalAlpha=p.alpha;
+      if(p.symbol){ctx.fillStyle=p.color;ctx.font='11px monospace';ctx.fillText(p.symbol,p.x,p.y);}
+      else{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.fill();}
+    }
+    ctx.globalAlpha=1;requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);
+  window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+  init();draw();
+})();
+
+/* ── BUDGET CALCULATOR ── */
+(function () {
+  const budgetInput  = document.getElementById('budget');
+  const slotInput    = document.getElementById('slotType');
+  const resImpr      = document.getElementById('resImpressions');
+  const resDays      = document.getElementById('resDays');
+  const resClicks    = document.getElementById('resClicks');
+
+  function update() {
+    const budget = +budgetInput.value || 0;
+    const cpm    = +slotInput.value;
+    const impr   = (budget / cpm) * 1000;
+    const days   = Math.round(impr / (500 * 8)); // 500 devs × 8 impressions/dev/day estimate
+    const clicks = Math.round(impr * 0.02);
+    resImpr.textContent  = impr >= 1000000 ? (impr/1000000).toFixed(1)+'M' : impr >= 1000 ? Math.round(impr/1000)+'K' : Math.round(impr);
+    resDays.textContent  = '~' + Math.max(1, days);
+    resClicks.textContent = '~' + (clicks >= 1000 ? Math.round(clicks/1000)+'K' : clicks);
+  }
+
+  budgetInput.addEventListener('input', update);
+  slotInput.addEventListener('change', update);
+  update();
+})();
+
+/* ── AD PREVIEW ── */
+(function () {
+  const input   = document.getElementById('adInput');
+  const preview = document.getElementById('adPreviewText');
+  const counter = document.getElementById('charCount');
+
+  function update() {
+    preview.textContent  = input.value || 'Your ad message here →';
+    counter.textContent  = input.value.length;
+  }
+
+  input.addEventListener('input', update);
+  update();
+})();
+
+/* ── SCROLL REVEAL ── */
+const revealEls = document.querySelectorAll('.step-card');
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      e.target.style.animation = `fade-up .55s ease ${i * 0.07}s forwards`;
+      e.target.style.opacity = '0';
+      revealObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => revealObs.observe(el));
+</script>
+</body>
+</html>
