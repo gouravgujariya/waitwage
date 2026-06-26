@@ -51,6 +51,10 @@
         "title": "DevCut: Sign In (returning user)"
       },
       {
+        "command": "devcut.openWebsite",
+        "title": "DevCut: Open Website / Get Invite Code"
+      },
+      {
         "command": "devcut.openSettings",
         "title": "DevCut: Open Settings"
       },

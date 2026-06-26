@@ -94,7 +94,26 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(readyBar);
   readyBar.show();
 
+  // ── First-run onboarding ──────────────────────────────────────────────────
+  // Show once: if user has never registered, tell them exactly what to do.
+  if (!authStore.getUserId()) {
+    vscode.window.showInformationMessage(
+      "⚡ DevCut: Earn ₹ while you wait on builds. Enter your invite code to activate.",
+      "Get Free Code →",
+      "I Have a Code"
+    ).then((action) => {
+      if (action === "Get Free Code →")  vscode.commands.executeCommand("devcut.openWebsite");
+      if (action === "I Have a Code")    vscode.commands.executeCommand("devcut.activate");
+    });
+  }
+
   // ── Commands ──────────────────────────────────────────────────────────────
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("devcut.openWebsite", () => {
+      vscode.env.openExternal(vscode.Uri.parse("https://waitwage-production.up.railway.app/site/"));
+    })
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("devcut.handleClick", async () => {
@@ -443,6 +462,22 @@ export function activate(context: vscode.ExtensionContext) {
 function onLongRunningStart(context: vscode.ExtensionContext, taskType?: string) {
   const config = vscode.workspace.getConfiguration("devcut");
   if (!config.get<boolean>("enabled", true)) return;
+
+  // Guard: if never registered, show a one-time nudge then bail — no token, no ad.
+  if (!authStore.getUserId()) {
+    const hintKey = "devcut.taskHintShown";
+    if (!context.globalState.get<boolean>(hintKey)) {
+      context.globalState.update(hintKey, true);
+      vscode.window.showInformationMessage(
+        "⚡ DevCut: Activate to earn ₹ on this build!",
+        "Activate Now", "Get Code"
+      ).then((a) => {
+        if (a === "Activate Now") vscode.commands.executeCommand("devcut.activate");
+        if (a === "Get Code")     vscode.commands.executeCommand("devcut.openWebsite");
+      });
+    }
+    return;
+  }
 
   activeTaskCount++;
 
