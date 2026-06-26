@@ -27,10 +27,12 @@ howtouse.md
 INDIA-STRATEGY.md
 SCALE-PLAN.md
 
-# Images (not used in extension UI)
+# Images (not used in extension UI — except logo.png)
+!logo.png
 *.png
 *.jpg
 *.jpeg
+gen_logo.py
 
 # Build artifacts
 *.js.map
