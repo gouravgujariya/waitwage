@@ -2,15 +2,22 @@
   "name": "devcut",
   "displayName": "DevCut — Get Paid for Waiting",
   "description": "Shows a sponsored line in your status bar while you wait on builds, installs, and tests. You get a share of the revenue.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "gouravgujariya",
   "icon": "logo.png",
-  "repository": { "type": "git", "url": "https://github.com/gouravgujariya/waitwage" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gouravgujariya/waitwage"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
-  "activationEvents": ["onStartupFinished"],
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
