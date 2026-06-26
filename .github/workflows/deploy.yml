@@ -1,11 +1,11 @@
-name: Deploy to GitHub Pages
+name: Sync landing → docs (GitHub Pages)
 
 on:
   push:
     branches: [main, master]
 
 jobs:
-  deploy:
+  sync:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -13,8 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./landing
+      - name: Copy landing/ into docs/
+        run: |
+          rm -rf docs
+          cp -r landing docs
+
+      - name: Commit docs if changed
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add docs/
+          git diff --staged --quiet && echo "No changes" || (
+            git commit -m "chore: sync docs from landing [skip ci]" &&
+            git push
+          )
